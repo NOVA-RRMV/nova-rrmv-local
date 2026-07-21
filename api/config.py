@@ -28,7 +28,7 @@ class Settings:
 
     # Retrieval
     TOP_K: int = 5
-    SIMILARITY_THRESHOLD: float = 0.7
+    SIMILARITY_THRESHOLD: float = 0.5
 
     # Paths
     UPLOAD_DIR: str = "uploads"

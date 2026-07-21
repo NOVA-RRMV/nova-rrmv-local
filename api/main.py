@@ -187,13 +187,15 @@ async def query_rag(request: QueryRequest):
     from ingestion.embedder import embed_query
     query_vector = embed_query(request.question)
 
-    # Search Qdrant
-    results = client.search(
+    # Search Qdrant (v1.18+ uses query_points)
+    response = client.query_points(
         collection_name=request.collection,
-        query_vector=query_vector,
+        query=query_vector,
         limit=request.top_k,
         score_threshold=settings.SIMILARITY_THRESHOLD,
     )
+
+    results = response.points
 
     if not results:
         return QueryResponse(
@@ -258,7 +260,7 @@ async def list_collections():
         info = client.get_collection(collection.name)
         collections_info.append({
             "name": collection.name,
-            "vectors_count": info.vectors_count or 0,
+            "vectors_count": info.points_count or 0,
             "points_count": info.points_count or 0,
         })
 
@@ -271,11 +273,11 @@ async def get_stats():
     client = get_qdrant()
     collections = client.get_collections().collections
 
-    total_vectors = 0
+    total_points = 0
     collection_names = []
     for col in collections:
         info = client.get_collection(col.name)
-        total_vectors += info.vectors_count or 0
+        total_points += info.points_count or 0
         collection_names.append(col.name)
 
     # Count uploaded files
@@ -285,7 +287,7 @@ async def get_stats():
 
     return {
         "total_collections": len(collections),
-        "total_vectors": total_vectors,
+        "total_vectors": total_points,
         "total_uploads": len(upload_files),
         "collections": collection_names,
         "qdrant_url": settings.QDRANT_URL,

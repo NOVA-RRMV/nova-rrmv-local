@@ -37,13 +37,15 @@ def search_similar(
     # Embed the query
     query_vector = embed_query(query)
 
-    # Search Qdrant
-    results = client.search(
+    # Search Qdrant (v1.18+ uses query_points)
+    response = client.query_points(
         collection_name=collection,
-        query_vector=query_vector,
+        query=query_vector,
         limit=top_k,
         score_threshold=similarity_threshold,
     )
+
+    results = response.points
 
     # Format results
     chunks = []
