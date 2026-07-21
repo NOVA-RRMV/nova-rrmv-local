@@ -38,3 +38,6 @@ Thumbs.db
 *.log
 tmp/
 temp/
+uploads/
+test_doc.txt
+collections/
