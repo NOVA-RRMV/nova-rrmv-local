@@ -1,17 +1,32 @@
 """RegEngine — FastAPI Application.
 
-This is the main entry point for the backend API.
+Main entry point for the backend API.
+All routes are here. This is your central hub.
 """
 
-from fastapi import FastAPI, UploadFile, File
+import os
+import uuid
+import shutil
+from pathlib import Path
+
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from qdrant_client import QdrantClient
+from qdrant_client.models import VectorParams, Distance, PointStruct
 
 from .config import settings
-from .models import QueryRequest, QueryResponse, UploadResponse, HealthResponse
+from .models import (
+    QueryRequest,
+    QueryResponse,
+    UploadResponse,
+    HealthResponse,
+)
+
+# ─── App Setup ───────────────────────────────────────────────
 
 app = FastAPI(
     title="RegEngine API",
-    description="RAG Engine — Retrieval-Augmented Generation",
+    description="RAG Engine — upload documents, ask questions, get answers",
     version="0.1.0",
 )
 
@@ -24,59 +39,254 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ─── Qdrant Connection ───────────────────────────────────────
+
+
+def get_qdrant() -> QdrantClient:
+    """Get a Qdrant client connection."""
+    return QdrantClient(
+        url=settings.QDRANT_URL,
+        api_key=settings.QDRANT_API_KEY or None,
+    )
+
+
+def ensure_collection(client: QdrantClient, collection: str = "default"):
+    """Create collection if it doesn't exist."""
+    collections = [c.name for c in client.get_collections().collections]
+    if collection not in collections:
+        client.create_collection(
+            collection_name=collection,
+            vectors_config=VectorParams(
+                size=384,  # all-MiniLM-L6-v2 produces 384-dim vectors
+                distance=Distance.COSINE,
+            ),
+        )
+
+
+# ─── Routes ──────────────────────────────────────────────────
+
 
 @app.get("/api/health", response_model=HealthResponse)
 async def health_check():
     """Check if all services are running."""
+    qdrant_ok = False
+    try:
+        client = get_qdrant()
+        client.get_collections()
+        qdrant_ok = True
+    except Exception:
+        pass
+
     return HealthResponse(
-        status="ok",
-        qdrant_connected=False,  # TODO: check Qdrant connection
+        status="ok" if qdrant_ok else "degraded",
+        qdrant_connected=qdrant_ok,
         version="0.1.0",
     )
 
 
 @app.post("/api/upload", response_model=UploadResponse)
-async def upload_document(file: UploadFile = File(...)):
-    """Upload a document for ingestion into the RAG pipeline."""
-    # TODO: Implement document upload
-    # 1. Save file temporarily
-    # 2. Run ingestion pipeline
-    # 3. Store vectors in Qdrant
+async def upload_document(
+    file: UploadFile = File(...),
+    collection: str = "default",
+):
+    """Upload a document for ingestion into the RAG pipeline.
+
+    1. Save file to disk
+    2. Load and extract text
+    3. Split into chunks
+    4. Generate embeddings
+    5. Store in Qdrant
+    """
+    # Validate file type
+    allowed = {".txt", ".md", ".pdf", ".docx"}
+    ext = Path(file.filename).suffix.lower()
+    if ext not in allowed:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type '{ext}' not supported. Use: {', '.join(allowed)}",
+        )
+
+    # Save file to disk
+    file_id = str(uuid.uuid4())[:8]
+    save_path = os.path.join(settings.UPLOAD_DIR, f"{file_id}_{file.filename}")
+    with open(save_path, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    # Load document text
+    try:
+        from ingestion.loader import load_document
+        text = load_document(save_path)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to read file: {str(e)}")
+
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="File is empty or unreadable")
+
+    # Chunk text
+    from ingestion.chunker import chunk_text
+    chunks = chunk_text(
+        text,
+        chunk_size=settings.CHUNK_SIZE,
+        chunk_overlap=settings.CHUNK_OVERLAP,
+    )
+
+    # Generate embeddings
+    from ingestion.embedder import embed_text
+    chunk_texts = [c["text"] for c in chunks]
+    embeddings = embed_text(chunk_texts)
+
+    # Store in Qdrant
+    client = get_qdrant()
+    ensure_collection(client, collection)
+
+    points = []
+    for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
+        points.append(
+            PointStruct(
+                id=str(uuid.uuid4()),
+                vector=embedding,
+                payload={
+                    "text": chunk["text"],
+                    "filename": file.filename,
+                    "file_id": file_id,
+                    "chunk_index": i,
+                    "total_chunks": len(chunks),
+                },
+            )
+        )
+
+    client.upsert(collection_name=collection, points=points)
+
     return UploadResponse(
         filename=file.filename,
-        chunks_stored=0,
-        collection="default",
+        chunks_stored=len(chunks),
+        collection=collection,
     )
 
 
 @app.post("/api/query", response_model=QueryResponse)
 async def query_rag(request: QueryRequest):
-    """Ask a question and get an answer with sources."""
-    # TODO: Implement RAG query
-    # 1. Embed the question
-    # 2. Search Qdrant for similar vectors
-    # 3. Build context from retrieved chunks
-    # 4. Generate answer with LLM
+    """Ask a question and get an answer with sources.
+
+    1. Embed the question
+    2. Search Qdrant for similar chunks
+    3. Build context from results
+    4. Generate answer with LLM (if API key available)
+    """
+    client = get_qdrant()
+
+    # Check collection exists
+    collections = [c.name for c in client.get_collections().collections]
+    if request.collection not in collections:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Collection '{request.collection}' not found. Upload some documents first.",
+        )
+
+    # Embed the question
+    from ingestion.embedder import embed_query
+    query_vector = embed_query(request.question)
+
+    # Search Qdrant
+    results = client.search(
+        collection_name=request.collection,
+        query_vector=query_vector,
+        limit=request.top_k,
+        score_threshold=settings.SIMILARITY_THRESHOLD,
+    )
+
+    if not results:
+        return QueryResponse(
+            answer="No relevant documents found. Try uploading some documents first.",
+            sources=[],
+            confidence=0.0,
+        )
+
+    # Format sources
+    sources = []
+    for r in results:
+        sources.append({
+            "text": r.payload.get("text", ""),
+            "filename": r.payload.get("filename", ""),
+            "score": r.score,
+        })
+
+    # Build context
+    from retrieval.context import build_context, build_prompt
+    context = build_context(sources)
+
+    # Generate answer with LLM (if key available)
+    answer = ""
+    if settings.OPENAI_API_KEY and settings.OPENAI_API_KEY != "sk-your-key-here":
+        try:
+            from openai import OpenAI
+            openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            prompt = build_prompt(request.question, context)
+
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=500,
+            )
+            answer = response.choices[0].message.content
+        except Exception as e:
+            answer = f"LLM error: {str(e)}\n\nHere are the relevant sources:\n\n{context}"
+    else:
+        answer = (
+            "No OpenAI API key configured. "
+            "Here are the relevant sources:\n\n"
+            f"{context}"
+        )
+
+    # Calculate confidence
+    avg_score = sum(s["score"] for s in sources) / len(sources)
+
     return QueryResponse(
-        answer="TODO: Implement RAG query pipeline",
-        sources=[],
-        confidence=0.0,
+        answer=answer,
+        sources=sources,
+        confidence=round(avg_score, 3),
     )
 
 
 @app.get("/api/collections")
 async def list_collections():
     """List all document collections in Qdrant."""
-    # TODO: Query Qdrant for collections
-    return {"collections": []}
+    client = get_qdrant()
+    collections_info = []
+
+    for collection in client.get_collections().collections:
+        info = client.get_collection(collection.name)
+        collections_info.append({
+            "name": collection.name,
+            "vectors_count": info.vectors_count or 0,
+            "points_count": info.points_count or 0,
+        })
+
+    return {"collections": collections_info}
 
 
 @app.get("/api/stats")
 async def get_stats():
     """Get system statistics."""
-    # TODO: Return actual stats
+    client = get_qdrant()
+    collections = client.get_collections().collections
+
+    total_vectors = 0
+    collection_names = []
+    for col in collections:
+        info = client.get_collection(col.name)
+        total_vectors += info.vectors_count or 0
+        collection_names.append(col.name)
+
+    # Count uploaded files
+    upload_files = []
+    if os.path.exists(settings.UPLOAD_DIR):
+        upload_files = os.listdir(settings.UPLOAD_DIR)
+
     return {
-        "total_documents": 0,
-        "total_chunks": 0,
-        "collections": [],
+        "total_collections": len(collections),
+        "total_vectors": total_vectors,
+        "total_uploads": len(upload_files),
+        "collections": collection_names,
+        "qdrant_url": settings.QDRANT_URL,
     }

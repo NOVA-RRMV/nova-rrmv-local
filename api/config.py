@@ -1,34 +1,41 @@
-"""Application configuration."""
+"""Application configuration — loads settings from .env file."""
 
 import os
-from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 
-class Settings(BaseSettings):
-    """RegEngine settings — loaded from environment variables."""
+class Settings:
+    """RegEngine settings."""
 
     # Qdrant
-    qdrant_url: str = os.getenv("QDRANT_URL", "http://localhost:6333")
-    qdrant_api_key: str = os.getenv("QDRANT_API_KEY", "")
+    QDRANT_URL: str = os.getenv("QDRANT_URL", "http://localhost:6333")
+    QDRANT_API_KEY: str = os.getenv("QDRANT_API_KEY", "")
 
     # LLM
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 
     # App
-    app_env: str = os.getenv("APP_ENV", "development")
-    log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    APP_ENV: str = os.getenv("APP_ENV", "development")
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # Ingestion
-    chunk_size: int = 500
-    chunk_overlap: int = 50
-    embedding_model: str = "all-MiniLM-L6-v2"
+    CHUNK_SIZE: int = 500
+    CHUNK_OVERLAP: int = 50
+    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
 
     # Retrieval
-    top_k: int = 5
-    similarity_threshold: float = 0.7
+    TOP_K: int = 5
+    SIMILARITY_THRESHOLD: float = 0.7
 
-    class Config:
-        env_file = ".env"
+    # Paths
+    UPLOAD_DIR: str = "uploads"
+    COLLECT_DIR: str = "collections"
 
 
 settings = Settings()
+
+# Create upload directory if it doesn't exist
+os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
