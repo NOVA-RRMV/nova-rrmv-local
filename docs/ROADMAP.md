@@ -18,7 +18,7 @@ Think of it like a **smart search engine for your own documents**.
 
 ---
 
-## Team Roles (5 Members — Everyone is Equal)
+## Team Roles (4 Members — Everyone is Equal)
 
 | Who | Focus Area | What They Do |
 |-----|-----------|-------------|
