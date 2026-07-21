@@ -18,15 +18,15 @@ Think of it like a **smart search engine for your own documents**.
 
 ---
 
-## Team Roles (5 Members)
+## Team Roles (5 Members — Everyone is Equal)
 
-| Who | Role | What They Do |
-|-----|------|-------------|
-| **Mrity (You)** | **Team Lead + API** | Boss of the project. Makes decisions. Builds the main server. Reviews everyone's code. |
-| **Member A** | **Document Ingestion** | Takes files and makes them readable by the system. Handles PDF, Word, text files. |
-| **Member B** | **Search Engine** | Builds the search part. When someone asks a question, finds the best matching pieces. |
-| **Member C** | **Dashboard (UI)** | Builds the website where users type questions and see answers. Makes it look good. |
-| **Member D** | **Testing + MCP** | Tests everything. Makes sure it works. Also connects to AI tools like Claude. |
+| Who | Focus Area | What They Do |
+|-----|-----------|-------------|
+| **Mrity** | API + Coordination | Sets up the server, connects everyone's work, keeps things on track |
+| **Rakhi** | Document Ingestion | Takes files and makes them readable by the system. Handles PDF, Word, text files. |
+| **Viraj** | Search Engine | Builds the search part. When someone asks a question, finds the best matching pieces. |
+| **Megha** | Dashboard (UI) | Builds the website where users type questions and see answers. Makes it look good. |
+| **Everyone** | Testing + MCP | We all test. We all review each other's code. We all make it better. |
 
 ---
 
@@ -39,16 +39,16 @@ Think of it like a **smart search engine for your own documents**.
 
 | Task | Who | Days | Done? |
 |------|-----|------|-------|
-| Set up Docker on everyone's电脑 | All | Day 1 | ⬜ |
+| Set up Docker on everyone's computer | All | Day 1 | ⬜ |
 | Clone the repo and run it | All | Day 1 | ⬜ |
 | Understand the code structure | All | Day 2 | ⬜ |
-| Build document loader (PDF reader) | Member A | Day 3-5 | ⬜ |
-| Build text chunker (split into pieces) | Member A | Day 6-8 | ⬜ |
-| Set up Qdrant database | Member B | Day 3-5 | ⬜ |
-| Build embedding pipeline (text → numbers) | Member B | Day 6-8 | ⬜ |
-| Connect loader → chunker → database | Member A + B | Day 9-10 | ⬜ |
+| Build document loader (PDF reader) | Rakhi | Day 3-5 | ⬜ |
+| Build text chunker (split into pieces) | Rakhi | Day 6-8 | ⬜ |
+| Set up Qdrant database | Viraj | Day 3-5 | ⬜ |
+| Build embedding pipeline (text → numbers) | Viraj | Day 6-8 | ⬜ |
+| Connect loader → chunker → database | Rakhi + Viraj | Day 9-10 | ⬜ |
 | Basic API endpoints working | Mrity | Day 5-10 | ⬜ |
-| First integration test (upload → stored) | Member D | Day 10 | ⬜ |
+| First integration test (upload → stored) | All | Day 10 | ⬜ |
 
 **Phase 1 Checkpoint:**
 - [ ] Can upload a PDF through the API
@@ -64,14 +64,14 @@ Think of it like a **smart search engine for your own documents**.
 
 | Task | Who | Days | Done? |
 |------|-----|------|-------|
-| Build vector search (find similar chunks) | Member B | Day 1-5 | ⬜ |
-| Build context assembly (format results) | Member B | Day 6-7 | ⬜ |
+| Build vector search (find similar chunks) | Viraj | Day 1-5 | ⬜ |
+| Build context assembly (format results) | Viraj | Day 6-7 | ⬜ |
 | Connect LLM for answer generation | Mrity | Day 3-7 | ⬜ |
-| Build chat interface (Streamlit) | Member C | Day 1-7 | ⬜ |
-| Add file upload page | Member C | Day 3-5 | ⬜ |
-| Add source display (show where answer came from) | Member C | Day 6-7 | ⬜ |
-| End-to-end test (upload → ask → answer) | Member D | Day 8-10 | ⬜ |
-| Write evaluation metrics | Member D | Day 5-10 | ⬜ |
+| Build chat interface (Streamlit) | Megha | Day 1-7 | ⬜ |
+| Add file upload page | Megha | Day 3-5 | ⬜ |
+| Add source display (show where answer came from) | Megha | Day 6-7 | ⬜ |
+| End-to-end test (upload → ask → answer) | All | Day 8-10 | ⬜ |
+| Write evaluation metrics | All | Day 5-10 | ⬜ |
 
 **Phase 2 Checkpoint:**
 - [ ] Can upload documents through the website
@@ -88,12 +88,12 @@ Think of it like a **smart search engine for your own documents**.
 
 | Task | Who | Days | Done? |
 |------|-----|------|-------|
-| UI polish (colors, layout, responsive) | Member C | Day 1-5 | ⬜ |
+| UI polish (colors, layout, responsive) | Megha | Day 1-5 | ⬜ |
 | Error handling (what if upload fails?) | Mrity | Day 1-3 | ⬜ |
-| Performance testing (how fast?) | Member D | Day 1-5 | ⬜ |
-| MCP server (connect to AI tools) | Member D | Day 3-7 | ⬜ |
-| Multiple document support | Member A | Day 3-5 | ⬜ |
-| Search improvements (better results) | Member B | Day 3-7 | ⬜ |
+| Performance testing (how fast?) | All | Day 1-5 | ⬜ |
+| MCP server (connect to AI tools) | All | Day 3-7 | ⬜ |
+| Multiple document support | Rakhi | Day 3-5 | ⬜ |
+| Search improvements (better results) | Viraj | Day 3-7 | ⬜ |
 | Demo video / presentation | All | Day 8-10 | ⬜ |
 | Final testing | All | Day 8-10 | ⬜ |
 | Report / documentation | Mrity | Day 7-10 | ⬜ |
@@ -176,10 +176,9 @@ git push origin feature/your-branch-name
 | Person | Branch |
 |--------|--------|
 | Mrity | `feature/api-layer` |
-| Member A | `feature/ingestion-pipeline` |
-| Member B | `feature/retrieval-engine` |
-| Member C | `feature/dashboard` |
-| Member D | `feature/eval-pipeline` |
+| Rakhi | `feature/ingestion-pipeline` |
+| Viraj | `feature/retrieval-engine` |
+| Megha | `feature/dashboard` |
 
 ---
 

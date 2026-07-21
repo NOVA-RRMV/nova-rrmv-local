@@ -21,7 +21,7 @@ main (protected)
 3. **Each person works on their own feature branch**
 4. **Always create a PR** to merge — even for small changes
 5. **At least 1 review** before merging to develop
-6. **Lead (Mrity)** merges develop → main for releases
+6. **Mrity (coordinator)** merges develop → main for releases
 
 ## Day-to-Day Workflow
 
@@ -90,14 +90,12 @@ Before → After
 
 ## Who Works on What
 
-| Person | Feature Branch | Module |
+| Member | Feature Branch | Focus Area |
 |--------|---------------|--------|
-| Mrity (Lead) | `feature/api-layer` | API + Integration |
-| Member A | `feature/ingestion-pipeline` | Document processing |
-| Member B | `feature/retrieval-engine` | Vector search |
-| Member C | `feature/dashboard` | Web UI |
-| Member D | `feature/eval-pipeline` | Testing & evaluation |
-| Member E | `feature/mcp-server` | MCP integration |
+| Mrity | `feature/api-layer` | API + Integration |
+| Rakhi | `feature/ingestion-pipeline` | Document processing |
+| Viraj | `feature/retrieval-engine` | Vector search |
+| Megha | `feature/dashboard` | Web UI |
 
 ## Timeline (Suggested)
 

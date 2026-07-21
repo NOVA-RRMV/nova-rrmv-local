@@ -79,25 +79,24 @@ docker-compose up --build
 
 | Phase | What | Owner | Status |
 |-------|------|-------|--------|
-| 1 | Project setup + Docker | Lead (Mrity) | 🔄 In Progress |
-| 2 | Ingestion pipeline | Member A | ⏳ Pending |
-| 3 | Retrieval engine | Member B | ⏳ Pending |
-| 4 | API layer | Lead (Mrity) | ⏳ Pending |
-| 5 | Dashboard UI | Member C | ⏳ Pending |
-| 6 | Eval pipeline | Member D | ⏳ Pending |
-| 7 | MCP Server | Member E | ⏳ Pending |
+| 1 | Project setup + Docker | Mrity | 🔄 In Progress |
+| 2 | Ingestion pipeline | Rakhi | ⏳ Pending |
+| 3 | Retrieval engine | Viraj | ⏳ Pending |
+| 4 | API layer | Mrity | ⏳ Pending |
+| 5 | Dashboard UI | Megha | ⏳ Pending |
+| 6 | Eval pipeline | All | ⏳ Pending |
+| 7 | MCP Server | All | ⏳ Pending |
 | 8 | Integration + Testing | All | ⏳ Pending |
 
 ## Team: Nova RRMV
 
-| Role | Responsibility |
-|------|---------------|
-| Lead | Architecture, API, integration, code review |
-| Ingestion | Document loaders, chunking, embedding pipeline |
-| Retrieval | Vector search, similarity, context assembly |
-| Dashboard | Frontend UI, user interaction |
-| Eval | Metrics, benchmarks, quality testing |
-| MCP | Model Context Protocol server integration |
+| Member | Focus Area | Branch |
+|--------|-----------|--------|
+| Mrity | API + coordination, integration | `feature/api-layer` |
+| Rakhi | Document ingestion pipeline | `feature/ingestion-pipeline` |
+| Viraj | Retrieval + vector search | `feature/retrieval-engine` |
+| Megha | Dashboard UI | `feature/dashboard` |
+| Shared | Evaluation + MCP server | `feature/eval-pipeline` / `feature/mcp-server` |
 
 ## License
 
