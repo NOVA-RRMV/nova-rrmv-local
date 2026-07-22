@@ -1,4 +1,4 @@
-# RegEngine
+# RagEngine
 
 > A Retrieval-Augmented Generation (RAG) Engine — built by Team Nova RRMV
 
@@ -80,7 +80,7 @@ docker-compose up --build
 | Phase | What | Owner | Status |
 |-------|------|-------|--------|
 | 1 | Project setup + Docker | Mrity | 🔄 In Progress |
-| 2 | Ingestion pipeline | Rakhi | ⏳ Pending |
+| 2 | Ingestion pipeline | Rakhi | ✅ Done |
 | 3 | Retrieval engine | Viraj | ⏳ Pending |
 | 4 | API layer | Mrity | ⏳ Pending |
 | 5 | Dashboard UI | Megha | ⏳ Pending |
