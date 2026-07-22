@@ -1,0 +1,58 @@
+[
+  {
+    "id": "qa_001",
+    "question": "What does a defaultdict do differently from a regular dict?",
+    "expected_answer": "A defaultdict is a subclass of the built-in dict class that calls a factory function to automatically supply a default value for a missing key, instead of raising a KeyError.",
+    "source_file": "library_collections.txt",
+    "category": "library"
+  },
+  {
+    "id": "qa_002",
+    "question": "What does the finally clause in a try statement do?",
+    "expected_answer": "The finally clause executes as the last task before the try statement completes, and it runs whether or not the try statement produces an exception.",
+    "source_file": "tutorial_errors.txt",
+    "category": "tutorial"
+  },
+  {
+    "id": "qa_003",
+    "question": "What is the purpose of the strict parameter in Python's zip() function?",
+    "expected_answer": "The strict parameter controls whether zip() raises an error when the input iterables are of different lengths, instead of silently truncating to the shortest one.",
+    "source_file": "library_functions.txt",
+    "category": "library"
+  },
+  {
+    "id": "qa_004",
+    "question": "What does os.path.join() do when combining path segments?",
+    "expected_answer": "It intelligently joins one or more path segments together, returning the concatenation of the path and all given path segments, inserting exactly one directory separator between them as needed.",
+    "source_file": "library_os.path.txt",
+    "category": "library"
+  },
+  {
+    "id": "qa_005",
+    "question": "What does a module's __name__ variable equal when the module is imported normally (not run directly)?",
+    "expected_answer": "It equals the module's own name as a string, for example a module saved as fibo.py will have __name__ equal to 'fibo' when imported.",
+    "source_file": "tutorial_modules.txt",
+    "category": "tutorial"
+  },
+  {
+    "id": "qa_006",
+    "question": "In Python, can the expression inside a list comprehension itself be another list comprehension?",
+    "expected_answer": "Yes, the initial expression in a list comprehension can be any arbitrary expression, including another list comprehension.",
+    "source_file": "tutorial_datastructures.txt",
+    "category": "tutorial"
+  },
+  {
+    "id": "qa_007",
+    "question": "According to the Python tutorial, why can aliasing (multiple names bound to the same object) be risky with mutable objects like lists?",
+    "expected_answer": "Because if a function modifies a mutable object passed as an argument, the caller will see the change too, since aliasing means the object itself is shared, not copied — unlike passing by value in some other languages.",
+    "source_file": "tutorial_classes.txt",
+    "category": "tutorial"
+  },
+  {
+    "id": "qa_008",
+    "question": "What formats does the json module's dumps() function support beyond just producing a plain JSON string?",
+    "expected_answer": "dumps() accepts several optional parameters like indent, sort_keys, ensure_ascii, and separators, letting you control formatting such as pretty-printing and key ordering, in addition to producing the basic JSON string.",
+    "source_file": "library_json.txt",
+    "category": "library"
+  }
+]
