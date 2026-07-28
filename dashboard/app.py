@@ -1,4 +1,4 @@
-"""RegEngine Dashboard — Streamlit web interface."""
+"""RagEngine Dashboard — Streamlit web interface."""
 
 import streamlit as st
 import requests
@@ -6,19 +6,23 @@ import requests
 API_URL = "http://localhost:8000"
 
 st.set_page_config(
-    page_title="RegEngine",
+    page_title="RagEngine",
     page_icon="🔍",
     layout="wide",
 )
 
-st.title("🔍 RegEngine — RAG Engine")
+st.title("🔍 RagEngine — RAG Engine")
 st.markdown("*Ask questions about your documents*")
 
 # Sidebar
 with st.sidebar:
     st.header("Settings")
-    collection = st.text_input("Collection Name", value="default")
-
+    try:
+        resp = requests.get(f"{API_URL}/api/collections")
+        collections = resp.json().get("collections", ["default"])
+    except requests.ConnectionError:
+        collections = ["default"]
+    collection = st.selectbox("Collection Name", options=collections)
     st.header("Upload Document")
     uploaded_file = st.file_uploader(
         "Choose a file",
