@@ -23,6 +23,9 @@ with st.sidebar:
     except requests.ConnectionError:
         collections = ["default"]
     collection = st.selectbox("Collection Name", options=collections)
+    if st.button("🗑️ Clear Chat"):
+        st.session_state.messages = []
+        st.rerun()  
     st.header("Upload Document")
     uploaded_file = st.file_uploader(
         "Choose a file",
