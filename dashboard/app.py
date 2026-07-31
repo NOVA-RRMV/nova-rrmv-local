@@ -47,7 +47,8 @@ st.header("💬 Chat")
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
+if not st.session_state.messages:
+    st.info("👋 Welcome! Upload a document on the left, then ask me anything about it.")
 # Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
