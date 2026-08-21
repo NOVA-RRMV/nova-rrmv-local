@@ -79,14 +79,14 @@ docker-compose up --build
 
 | Phase | What | Owner | Status |
 |-------|------|-------|--------|
-| 1 | Project setup + Docker | Mrity | 🔄 In Progress |
+| 1 | Project setup + Docker | Mrity | ✅ Done |
 | 2 | Ingestion pipeline | Rakhi | ✅ Done |
-| 3 | Retrieval engine | Viraj | ⏳ Pending |
-| 4 | API layer | Mrity | ⏳ Pending |
-| 5 | Dashboard UI | Megha | ⏳ Pending |
-| 6 | Eval pipeline | All | ⏳ Pending |
-| 7 | MCP Server | All | ⏳ Pending |
-| 8 | Integration + Testing | All | ⏳ Pending |
+| 3 | Retrieval engine | Viraj |✅ Done  |
+| 4 | API layer | Mrity | ✅ Done|
+| 5 | Dashboard UI | Megha | ✅ Done |
+| 6 | Eval pipeline | All | ✅ Done |
+| 7 | MCP Server | All | ✅ Done |
+| 8 | Integration + Testing | All | ✅ Done|
 
 ## Team: Nova RRMV
 
