@@ -7,6 +7,7 @@ All routes are here. This is your central hub.
 import os
 import uuid
 import shutil
+import asyncio
 from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
@@ -30,10 +31,15 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# CORS — allow dashboard to talk to API
+# CORS — allow dashboard to talk to API (development-friendly localhost origins)
+# For production, replace with your actual dashboard origin(s).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:8501",   # Streamlit dashboard
+        "http://localhost:3000",    # React dev server (if used)
+        "http://localhost:8000",    # API self-call
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -99,23 +105,35 @@ async def upload_document(
     """
     # Validate file type
     allowed = {".txt", ".md", ".pdf", ".docx"}
-    ext = Path(file.filename).suffix.lower()
+    # Prevent directory traversal: basename only
+    safe_name = Path(file.filename).name
+    ext = Path(safe_name).suffix.lower()
     if ext not in allowed:
         raise HTTPException(
             status_code=400,
             detail=f"File type '{ext}' not supported. Use: {', '.join(allowed)}",
         )
 
-    # Save file to disk
+    # Size guard: reject uploads larger than 15MB
+    MAX_FILE_BYTES = 15 * 1024 * 1024
+    content_bytes = file.file.read()
+    if len(content_bytes) > MAX_FILE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Upload exceeds 15MB limit (received {len(content_bytes)} bytes)",
+        )
+    file.file.seek(0)
+
+    # Save file to disk (basename only — path traverse blocked)
     file_id = str(uuid.uuid4())[:8]
-    save_path = os.path.join(settings.UPLOAD_DIR, f"{file_id}_{file.filename}")
+    save_path = os.path.join(settings.UPLOAD_DIR, f"{file_id}_{safe_name}")
     with open(save_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+        f.write(content_bytes)
 
     # Load document text
     try:
         from ingestion.loader import load_document
-        text = load_document(save_path)
+        text = await asyncio.to_thread(load_document, save_path)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to read file: {str(e)}")
 
@@ -133,7 +151,7 @@ async def upload_document(
     # Generate embeddings
     from ingestion.embedder import embed_text
     chunk_texts = [c["text"] for c in chunks]
-    embeddings = embed_text(chunk_texts)
+    embeddings = await asyncio.to_thread(embed_text, chunk_texts)
 
     # Store in Qdrant
     client = get_qdrant()
@@ -155,7 +173,7 @@ async def upload_document(
             )
         )
 
-    client.upsert(collection_name=collection, points=points)
+    await asyncio.to_thread(client.upsert, collection_name=collection, points=points)
 
     return UploadResponse(
         filename=file.filename,
@@ -185,10 +203,10 @@ async def query_rag(request: QueryRequest):
 
     # Embed the question
     from ingestion.embedder import embed_query
-    query_vector = embed_query(request.question)
+    query_vector = await asyncio.to_thread(embed_query, request.question)
 
     # Search Qdrant (v1.18+ uses query_points)
-    response = client.query_points(
+    response = await asyncio.to_thread(client.query_points,
         collection_name=request.collection,
         query=query_vector,
         limit=request.top_k,

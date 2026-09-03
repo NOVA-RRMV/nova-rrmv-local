@@ -10,8 +10,8 @@ from api.config import settings
 def get_client() -> QdrantClient:
     """Get a Qdrant client connection."""
     return QdrantClient(
-        url=settings.qdrant_url,
-        api_key=settings.qdrant_api_key or None,
+        url=settings.QDRANT_URL,
+        api_key=settings.QDRANT_API_KEY or None,
     )
 
 
