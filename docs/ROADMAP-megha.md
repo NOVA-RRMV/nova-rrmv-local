@@ -14,7 +14,7 @@
 | 4 | Chat layout | Build chat-style message display | ⬜ |
 | 5 | Connect API | Make UI talk to Mrity's API (localhost:8000) | ⬜ |
 
-**You're done when:** You can type a question in the UI and see a response (even if placeholder).
+**You're done when:** End-to-end verified with real Qdrant + LLM (or vetted local Ollama); response is not a placeholder — it references retrieved document chunks, passes sanity checks, and has no hardcoded mock data. Production Definition of Done: all P0 blockers resolved, CI green, security scan clean, README/contract docs complete.
 
 ---
 

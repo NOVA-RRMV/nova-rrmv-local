@@ -4,6 +4,7 @@ Main entry point for the backend API.
 All routes are here. This is your central hub.
 """
 
+import logging
 import os
 import uuid
 import shutil
@@ -30,19 +31,17 @@ app = FastAPI(
     description="RAG Engine — upload documents, ask questions, get answers",
     version="0.1.0",
 )
+logger = logging.getLogger("regengine.api")
 
-# CORS — allow dashboard to talk to API (development-friendly localhost origins)
-# For production, replace with your actual dashboard origin(s).
+# CORS — explicit origins from env (no wildcard + credentials combo)
+# Default = local dev only (no self-call 8000, no open origin set)
+origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8501",   # Streamlit dashboard
-        "http://localhost:3000",    # React dev server (if used)
-        "http://localhost:8000",    # API self-call
-    ],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # ─── Qdrant Connection ───────────────────────────────────────
@@ -80,8 +79,12 @@ async def health_check():
         client = get_qdrant()
         client.get_collections()
         qdrant_ok = True
-    except Exception:
-        pass
+    except Exception as e:
+        logger.exception("Health check: Qdrant dependency unavailable")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Service degraded: Qdrant unavailable ({type(e).__name__})",
+        )
 
     return HealthResponse(
         status="ok" if qdrant_ok else "degraded",
@@ -250,7 +253,11 @@ async def query_rag(request: QueryRequest):
             )
             answer = response.choices[0].message.content
         except Exception as e:
-            answer = f"LLM error: {str(e)}\n\nHere are the relevant sources:\n\n{context}"
+            logger.exception("LLM generation failed — sanitized for client")
+            answer = (
+                "LLM generation unavailable. Here are the relevant sources:\n\n"
+                f"{context}"
+            )
     else:
         answer = (
             "No OpenAI API key configured. "

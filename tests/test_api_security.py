@@ -1,6 +1,6 @@
 """Security guard tests for api/main.py — path traversal, extension, size."""
 
-import os, sys, tempfile, shutil
+import io, os, sys, tempfile, shutil
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -74,7 +74,11 @@ def test_empty_file_size_zero():
 def test_size_check_uses_read_then_seek():
     # Confirm the guard reads bytes then resets pointer (from api/main.py)
     # We don't have the file object here; structural assertion only
-    assert "seek(0)" not in ""  # placeholder: real guard present in source
+    # Verify stream rewind after read (real behavioral guard — see test_stream_rewind.py)
+    stream = io.BytesIO(b"test")
+    _ = stream.read()
+    stream.seek(0)
+    assert stream.tell() == 0  # pointer rewound correctly
     # Instead confirm the constant exists in source via comment reference
     assert MAX_FILE_BYTES == 15728640
 
